@@ -1,0 +1,1 @@
+[transformable]{background-color:red;display:block;position:absolute;left:var(--transform-position-x);top:var(--transform-position-y);width:var(--transform-size-width);height:var(--transform-size-height);rotate:var(--transform-rotation)}[transformable][controls-visible]{outline:2px dashed gray;cursor:move}/*# sourceMappingURL=transformable.css.map */

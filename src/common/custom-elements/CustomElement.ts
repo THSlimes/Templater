@@ -1,5 +1,5 @@
 /** RegExp for matching custom HTML tag names */
-const CUSTOM_TAG_NAME_REGEX = /^[a-z]+-[a-z]+$/;
+const CUSTOM_TAG_NAME_REGEX = /^[a-z]+(-[a-z]+)*$/;
 /** Gives the stylesheet source URL based on a custom element's name */
 function getStyleSheetHref(tagName: string): string {
     if (!CUSTOM_TAG_NAME_REGEX.test(tagName)) {
@@ -10,13 +10,18 @@ function getStyleSheetHref(tagName: string): string {
 }
 
 
+export enum InitState {
+    PENDING,
+    INITIALIZED,
+    FAILED
+}
 
 export default abstract class CustomElement extends HTMLElement {
 
     /** Set of element names whose styles are loaded. */
     private static loadedTagNames = new Set<string>();
 
-    private static loadStylesheet(tagName: string): Promise<void> {
+    protected static loadStylesheet(tagName: string): Promise<void> {
         if (this.loadedTagNames.has(tagName)) return Promise.resolve();
         else return new Promise((resolve, reject) => {
             const linkElem = document.createElement("link");
@@ -38,8 +43,8 @@ export default abstract class CustomElement extends HTMLElement {
                 if (prt === this) { // only load CustomElement subclass styles
                     this.loadStylesheet(name)
                         .then(() => console.info(`Loaded stylesheet for "${name}"`)) // DEBUG
-                        .catch(() => console.warn(`Failed to load stylesheet for "${name}". Make sure to have a CSS stylesheet at ${getStyleSheetHref(name)}`));
-                    this.loadedTagNames.add(name); // don't load twice
+                        .catch(() => console.warn(`Failed to load stylesheet for "${name}". Make sure to have a CSS stylesheet at ${getStyleSheetHref(name)}`))
+                        .finally(() => this.loadedTagNames.add(name)); // don't load twice
                     break;
                 }
                 else prt = Object.getPrototypeOf(prt);
@@ -49,6 +54,55 @@ export default abstract class CustomElement extends HTMLElement {
         }
     }
 
+
+    private initState = InitState.PENDING;
+    private initErr: any;
+    private readonly initResolvers: Set<(elem: this) => void> = new Set();
+    private readonly initRejectors: Set<(err?: any) => void> = new Set();
+
+    public onceInitialized(): Promise<this> {
+        const { promise, resolve, reject } = Promise.withResolvers<this>();
+
+        switch (this.initState) {
+            case InitState.PENDING:
+                this.initResolvers.add(resolve);
+                this.initRejectors.add(reject);
+                break;
+            case InitState.INITIALIZED:
+                resolve(this);
+                break;
+            case InitState.FAILED:
+                reject(this.initErr);
+                break;
+        }
+
+        return promise;
+    }
+
+    connectedCallback() {
+        const initPromise = this.initElement() ?? Promise.resolve();
+
+        initPromise
+            .then(() => {
+                for (const resolve of this.initResolvers) resolve(this);
+
+                this.initState = InitState.INITIALIZED;
+            })
+            .catch(err => {
+                this.initErr = err;
+                for (const reject of this.initRejectors) reject(this.initErr);
+
+                this.initState = InitState.FAILED;
+            })
+            .finally(() => {
+                this.initResolvers.clear();
+                this.initRejectors.clear();
+            });
+    }
+
+    protected initElement(): void | Promise<void> {
+        console.warn("initElement method is not overridden for " + this.constructor.name);
+    }
 
 
     public on<T extends keyof HTMLElementEventMap>(type: T, listener: (ev: HTMLElementEventMap[T], self: this) => void): this {

@@ -1,1 +1,14 @@
 @import url("./shared.css");
+
+body {
+    background-color: lightgray;
+}
+
+#template-container {
+    position: relative;
+
+    background-color: white;
+
+    width: 80vh;
+    height: 80vh;;
+}
