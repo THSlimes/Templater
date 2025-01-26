@@ -1,0 +1,143 @@
+/* Google ICONS IMPORT */
+@font-face {
+    font-family: "icon";
+    font-style: normal;
+    font-weight: 100 700;
+    src: url("../fonts/google-icons.woff2") format('woff2');
+}
+
+.icon {
+    margin: 0px;
+    font-family: "icon";
+    font-weight: normal;
+    font-style: normal;
+    font-size: 200%;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    font-feature-settings: "liga";
+    -webkit-font-smoothing: antialiased;
+
+    user-select: none !important;
+    transform-origin: center !important;
+}
+
+span.icon { font-size: inherit; }
+
+/* DEFAULT STYLES */
+
+:root {
+    --tiny-gap: .5rem;
+    --small-gap: 1rem;
+    --big-gap: 2rem;
+    --large-gap: 4rem;
+}
+
+/* UTILITY CLASSES */
+
+.flex { // any flexbox
+    display: flex;
+
+    // justify-content sub-classes
+    &.centered { justify-content: center; }
+    &.evenly-spaced { justify-content: space-evenly; }
+    &.between-spaced { justify-content: space-between; }
+    &.around-spaced { justify-content: space-around; }
+
+    // align-items sub-classes
+    &.align-center { align-items: center; }
+    &.align-baseline {
+        align-items: baseline;
+
+        &.first { align-items: first baseline; }
+        &.last { align-items: last baseline; }
+    }
+    &.align-stretch { align-items: stretch; }
+
+    // align-items sub-classes
+    &.center-content { align-items: center; }
+    &.stretch-content { align-items: stretch; }
+    &.evenly-space-content { align-items: space-evenly; }
+    &.between-space-content { align-items: space-between; }
+    &.around-space-content { align-items: space-around; }
+
+    // flex-wrap sub-classes
+    &.wrap { flex-wrap: wrap; }
+    &.no-wrap { flex-wrap: nowrap; }
+
+    // row-gap sub-classes
+    &.tiny-row-gap { row-gap: var(--tiny-gap); }
+    &.small-row-gap { row-gap: var(--small-gap); }
+    &.big-row-gap { row-gap: var(--big-gap); }
+    &.large-row-gap { row-gap: var(--large-gap); }
+
+    // column-gap sub-classes
+    &.tiny-column-gap { column-gap: var(--tiny-gap); }
+    &.small-column-gap { column-gap: var(--small-gap); }
+    &.big-column-gap { column-gap: var(--big-gap); }
+    &.large-column-gap { column-gap: var(--large-gap); }
+
+    > * { // styling for flexbox items
+        .grow { // using flex-grow
+            --growth: 1;
+            flex-grow: var(--growth);
+        }
+
+        .shrink { // using flex-shrink
+            --shrinkage: 1;
+            flex-shrink: var(--shrinkage);
+        }
+    }
+}
+
+// flexbox containing rows
+.rows {
+    @extend .flex;
+    flex-direction: column;
+
+    // reverse direction sub-class
+    &.reverse { flex-direction: column-reverse; }
+
+    // direction-specific item alignment subclasses
+    &.align-left { align-items: flex-start; }
+    &.align-right { align-items: flex-end; }
+
+    // direction-specific content alignment
+    &.left-content { align-items: flex-start; }
+    &.right-content { align-items: flex-end; }
+
+}
+
+// flexbox containing columns
+.columns {
+    @extend .flex;
+    flex-direction: row;
+
+    // reverse direction sub-class
+    &.reverse { flex-direction: row-reverse; }
+
+    // direction-specific item alignment subclasses
+    &.align-top { align-items: flex-start; }
+    &.align-bottom { align-items: flex-end; }
+
+    // direction-specific content alignment
+    &.top-content { align-items: flex-start; }
+    &.bottom-content { align-items: flex-end; }
+
+}
+
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-justify { text-align: justify; }
+
+[hidden] { display: none !important; }
+
+[clickable] { cursor: pointer; }
+
+[no-select] { user-select: none; }

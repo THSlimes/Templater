@@ -1,0 +1,25 @@
+{
+  "name": "templater",
+  "version": "0.0.0",
+  "description": "Tool for making image templates",
+  "main": "index.js",
+  "scripts": {
+    "server": "webpack-dev-server --config ./webpack-dev.config.js",
+    "build": "del-cli --force ./public/scripts && webpack --config ./webpack-prod.config.js && sass public/styles-src:public/styles --style compressed",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "cyoa"
+  ],
+  "author": "TKastelein",
+  "license": "ISC",
+  "dependencies": {
+    "del-cli": "^5.1.0",
+    "sass": "^1.78.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.5.4",
+    "webpack": "^5.94.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.1.0"
+  }
+}
