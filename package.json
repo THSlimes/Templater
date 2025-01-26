@@ -1,6 +1,6 @@
 {
   "name": "templater",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Tool for making image templates",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
   "keywords": [
     "cyoa"
   ],
-  "author": "TKastelein",
+  "author": "THSlimes",
   "license": "ISC",
   "dependencies": {
     "del-cli": "^5.1.0",
