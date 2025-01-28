@@ -1,6 +1,15 @@
+import Bounds2D from "../geometry/Bounds2D";
+import Dim2D from "../geometry/Dim2D";
+import Transform2D from "../geometry/Transform2D";
+import Vector2D from "../geometry/Vector2D";
 import CustomElement from "./CustomElement";
 
-abstract class Transformable extends CustomElement {
+export default abstract class Transformable extends CustomElement {
+
+    private static CANVAS_BOUNDS = new Bounds2D(
+        new Vector2D(0, 0),
+        new Dim2D(100, 100)
+    );
 
     static {
         CustomElement.loadStylesheet("transformable");
@@ -8,11 +17,11 @@ abstract class Transformable extends CustomElement {
 
 
 
-    private readonly transform: Transformable.Transform = {
-        position: { x: 0, y: 0 },
-        size: { width: 10, height: 10 },
-        rotation: 0
-    };
+    private readonly transform: Transform2D = new Transform2D(
+        new Vector2D(0, 0),
+        new Dim2D(30, 30),
+        0
+    );
 
     public get isControlsVisible() {
         return this.hasAttribute("controls-visible");
@@ -33,14 +42,13 @@ abstract class Transformable extends CustomElement {
 
 
         let mouseDown = false;
-        let offset: Transformable.Position = { x: 0, y: 0 };
+        let offset = Vector2D.ZERO;
 
         window.addEventListener("mousedown", ev => {
             mouseDown = true;
-            offset = Transformable.Position.mult(
-                Transformable.getMouseOffset(ev, this),
-                Transformable.Position.getScaleFactor(this, this.parentElement!)
-            );
+            offset = Transformable.getMouseOffset(ev, this)
+                .scale(.01)
+                .mult(this.transform.dim.getCorner());
 
             this.isControlsVisible = ev.target === this;
         });
@@ -48,10 +56,11 @@ abstract class Transformable extends CustomElement {
         window.addEventListener("mousemove", ev => {
             if (this.isControlsVisible && mouseDown) {
 
-                this.transform.position = Transformable.Position.sub(
-                    Transformable.getMouseOffset(ev, this.parentElement!),
-                    offset
+                this.transform.center = Transformable.CANVAS_BOUNDS.clamp(
+                    Transformable.getMouseOffset(ev, this.parentElement!)
+                        .sub(offset)
                 );
+
 
                 this.refreshCSSVars();
             }
@@ -62,88 +71,24 @@ abstract class Transformable extends CustomElement {
 
 
     private refreshCSSVars() {
-        this.style.setProperty("--transform-position-x", this.transform.position.x + '%');
-        this.style.setProperty("--transform-position-y", this.transform.position.y + '%');
+        this.style.setProperty("--transform-position-x", this.transform.center.x + '%');
+        this.style.setProperty("--transform-position-y", this.transform.center.y + '%');
 
-        this.style.setProperty("--transform-size-width", this.transform.size.width + '%');
-        this.style.setProperty("--transform-size-height", this.transform.size.height + '%');
+        this.style.setProperty("--transform-size-width", this.transform.dim.width + '%');
+        this.style.setProperty("--transform-size-height", this.transform.dim.height + '%');
 
         this.style.setProperty("--transform-rotation", this.transform.rotation + "deg");
     }
 
 
 
-    protected static getMouseOffset(ev: MouseEvent, elem: Element): Transformable.Position {
-        const rect = elem.getBoundingClientRect();
+    protected static getMouseOffset(ev: MouseEvent, elem: Element): Vector2D {
+        const elemBounds = Bounds2D.fromElement(elem);
+        const mouse = Vector2D.fromPoint(ev);
 
-        return {
-            x: (ev.clientX - rect.x) / rect.width * 100,
-            y: (ev.clientY - rect.y) / rect.height * 100
-        };
+        return mouse.sub(elemBounds.center)
+            .div(elemBounds.dim.getCorner())
+            .scale(100);
     }
 
 }
-
-namespace Transformable {
-
-    /** A position represents an (x, y) offset for the top-left corner */
-    export interface Position {
-        /** x-coordinate (horizontal) offset, measured in percent */
-        x: number,
-        /** y-coordinate (vertical) offset, measured in percent */
-        y: number
-    }
-
-    export namespace Position {
-
-        export function add(a: Position, b: Position): Position {
-            return {
-                x: a.x + b.x,
-                y: a.y + b.y
-            };
-        }
-
-        export function sub(a: Position, b: Position): Position {
-            return {
-                x: a.x - b.x,
-                y: a.y - b.y
-            };
-        }
-
-        export function mult(a: Position, b: Position): Position {
-            return {
-                x: a.x * b.x,
-                y: a.y * b.y
-            }
-        }
-
-        export function getScaleFactor(a: Element, b: Element): Position {
-            const aRect = a.getBoundingClientRect();
-            const bRect = b.getBoundingClientRect();
-
-            return {
-                x: aRect.width / bRect.width,
-                y: aRect.height / bRect.height
-            };
-        }
-
-    }
-
-
-    export interface Transform {
-        /** The position represents an (x, y) offset for the top-left corner */
-        position: Position,
-        /** Size of the bounding-box */
-        size: {
-            /** Width, measured in percent */
-            width: number,
-            /** Height, measured in percent */
-            height: number
-        },
-        /** Rotation around the center, measured in degrees */
-        rotation: number
-    }
-
-}
-
-export default Transformable;

@@ -4,8 +4,10 @@
 
     position: absolute;
 
-    left: var(--transform-position-x);
-    top: var(--transform-position-y);
+    left: calc(50% + var(--transform-position-x));
+    top: calc(50% + var(--transform-position-y));
+
+    translate: -50% -50%;
 
     width: var(--transform-size-width);
     height: var(--transform-size-height);
