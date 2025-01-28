@@ -59,6 +59,13 @@ export default class Bounds2D {
         );
     }
 
+    public projectOntoPerimeter(p: Point2D): Vector2D {
+        return new Vector2D(
+            (p.x < this.center.x ? this.left : this.right),
+            (p.y < this.center.y ? this.top : this.bottom)
+        );
+    }
+
 
     public copy(): Bounds2D {
         return new Bounds2D(this.center.copy(), this.dim.copy());

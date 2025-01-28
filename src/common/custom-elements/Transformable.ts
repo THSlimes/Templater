@@ -14,7 +14,10 @@ abstract class Transformable extends CustomElement {
         new Vector2D(0, 0),
         new Dim2D(100, 100)
     );
-    
+
+    private static MIN_WIDTH = 5;
+    private static MIN_HEIGHT = 5;
+
     static {
         CustomElement.loadStylesheet("transformable");
     }
@@ -84,17 +87,25 @@ abstract class Transformable extends CustomElement {
                     const mouse = Transformable.CANVAS_BOUNDS.clamp(Transformable.getMouseOffset(ev, this.parentElement!));
 
                     let oppositeCorner: Vector2D = this.transform.center;
-                    if (params.widthDir === Transformable.WidthResizeDir.LEFT) oppositeCorner.x = this.transform.right;
-                    else if (params.widthDir === Transformable.WidthResizeDir.RIGHT) oppositeCorner.x = this.transform.left;
-                    if (params.heightDir === Transformable.HeightResizeDir.UP) oppositeCorner.y = this.transform.bottom;
-                    else if (params.heightDir === Transformable.HeightResizeDir.DOWN) oppositeCorner.y = this.transform.top;
-                    oppositeCorner = Transformable.CANVAS_BOUNDS.clamp(oppositeCorner);
-
+                    if (params.widthDir === Transformable.WidthResizeDir.LEFT) {
+                        oppositeCorner.x = this.transform.right;
+                        mouse.x = MathUtil.clamp(mouse.x, undefined, oppositeCorner.x - Transformable.MIN_WIDTH); // enforce min width
+                    }
+                    else if (params.widthDir === Transformable.WidthResizeDir.RIGHT) {
+                        oppositeCorner.x = this.transform.left;
+                        mouse.x = MathUtil.clamp(mouse.x, oppositeCorner.x + Transformable.MIN_WIDTH); // enforce min width
+                    }
+                    if (params.heightDir === Transformable.HeightResizeDir.UP) {
+                        oppositeCorner.y = this.transform.bottom;
+                        mouse.y = MathUtil.clamp(mouse.y, undefined, oppositeCorner.y - Transformable.MIN_HEIGHT); // enforce min height
+                    }
+                    else if (params.heightDir === Transformable.HeightResizeDir.DOWN) {
+                        oppositeCorner.y = this.transform.top;
+                        mouse.y = MathUtil.clamp(mouse.y, oppositeCorner.y + Transformable.MIN_HEIGHT); // enforce min height
+                    }
 
                     const newBounds = Bounds2D.fromCorners(oppositeCorner, mouse);
                     newBounds.dim = newBounds.dim.abs();
-                    newBounds.dim.width = MathUtil.clamp(newBounds.dim.width, 5, 100);
-                    newBounds.dim.height = MathUtil.clamp(newBounds.dim.height, 5, 100);
 
                     if (params.widthDir !== Transformable.WidthResizeDir.NONE) {
                         this.transform.center.x = newBounds.center.x;
