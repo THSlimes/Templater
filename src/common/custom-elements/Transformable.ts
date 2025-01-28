@@ -48,6 +48,8 @@ abstract class Transformable extends CustomElement {
         this.refreshCSSVars();
 
 
+        // moving logic
+
         let mouseDown = false;
         let doMove = false;
         let offset = Vector2D.ZERO;
@@ -76,6 +78,9 @@ abstract class Transformable extends CustomElement {
         });
 
         window.addEventListener("mouseup", () => mouseDown = false);
+
+
+        // resizing logic
 
         const resizeHandleMaker = EF.div({ widthDir: Transformable.WidthResizeDir.NONE, heightDir: Transformable.HeightResizeDir.NONE }, undefined, "resize-handle")
             .attribute("width-resize-dir", (self, params) => params.widthDir)
@@ -130,6 +135,27 @@ abstract class Transformable extends CustomElement {
             resizeHandleMaker.make({ widthDir: Transformable.WidthResizeDir.LEFT, heightDir: Transformable.HeightResizeDir.DOWN }),
             resizeHandleMaker.make({ widthDir: Transformable.WidthResizeDir.NONE, heightDir: Transformable.HeightResizeDir.DOWN }),
             resizeHandleMaker.make({ widthDir: Transformable.WidthResizeDir.RIGHT, heightDir: Transformable.HeightResizeDir.DOWN }),
+        );
+
+
+        // rotating logic
+
+        this.append(
+            EF.div({}, undefined, "rotate-handle-line")
+                .make(),
+            EF.p({}, "sync")
+                .classes("icon", "rotate-handle")
+                .style({ display: "none" })
+                .on("mousedown", (_, self) => self.toggleAttribute("selected", true))
+                .do(self => window.addEventListener("mouseup", () => self.removeAttribute("selected")))
+                .do(self => window.addEventListener("mousemove", ev => {
+                    if (self.hasAttribute("selected")) {
+                        const mouse = Transformable.getMouseOffset(ev, this);
+                        this.transform.rotation = Math.atan2(mouse.y, mouse.x) / Math.PI / 2 * 360 + 90;
+                        this.refreshCSSVars();
+                    }
+                }))
+                .make()
         );
 
     }

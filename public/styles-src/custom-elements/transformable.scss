@@ -25,6 +25,7 @@
 
             position: absolute;
             translate: -50% -50%;
+            z-index: 1;
 
             width: .5rem;
             height: .5rem;
@@ -33,8 +34,14 @@
 
             &[width-resize-dir="left"] {
                 left: 0%;
-                &[height-resize-dir="up"] { cursor: nwse-resize; }
-                &[height-resize-dir="down"] { cursor: nesw-resize; }
+
+                &[height-resize-dir="up"] {
+                    cursor: nwse-resize;
+                }
+
+                &[height-resize-dir="down"] {
+                    cursor: nesw-resize;
+                }
             }
 
             &[width-resize-dir="none"] {
@@ -44,8 +51,14 @@
 
             &[width-resize-dir="right"] {
                 left: 100%;
-                &[height-resize-dir="up"] { cursor: nesw-resize; }
-                &[height-resize-dir="down"] { cursor: nwse-resize; }
+
+                &[height-resize-dir="up"] {
+                    cursor: nesw-resize;
+                }
+
+                &[height-resize-dir="down"] {
+                    cursor: nwse-resize;
+                }
             }
 
             &[height-resize-dir="up"] {
@@ -62,6 +75,39 @@
             }
 
         }
+
+        >.rotate-handle-line {
+            position: absolute;
+            top: calc(.75rem - 25%);
+            left: 50%;
+
+            width: 0px;
+            height: calc(25% - .75rem);
+
+            outline: 2px dashed gray;
+        }
+
+        >.rotate-handle {
+            display: block !important;
+            position: absolute;
+
+            translate: -50% -50%;
+            top: -25%;
+            left: 50%;
+
+            font-size: 1.5rem;
+
+            cursor: grab;
+        }
+
     }
 
+}
+
+body:has([transformable] > .rotate-handle[selected]) {
+    cursor: grabbing !important;
+
+    & * {
+        cursor: grabbing;
+    }
 }
