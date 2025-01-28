@@ -30,6 +30,23 @@ export default class Bounds2D {
     }
 
 
+    public get topLeft(): Vector2D {
+        return new Vector2D(this.left, this.top);
+    }
+
+    public get topRight(): Vector2D {
+        return new Vector2D(this.right, this.top);
+    }
+
+    public get bottomLeft(): Vector2D {
+        return new Vector2D(this.left, this.bottom);
+    }
+
+    public get bottomRight(): Vector2D {
+        return new Vector2D(this.right, this.bottom);
+    }
+
+
     public contains(p: Point2D): boolean {
         return p.x >= this.left && p.x <= this.right
             && p.y >= this.top && p.y <= this.bottom;
@@ -48,8 +65,17 @@ export default class Bounds2D {
     }
 
 
+    public static fromCorners(topLeft: Point2D, bottomright: Point2D): Bounds2D {
+        const tlVector = Vector2D.fromPoint(topLeft);
+        const brVector = Vector2D.fromPoint(bottomright);
 
-    public static fromElement(elem: Element) {
+        return new Bounds2D(
+            tlVector.add(brVector).scale(.5),
+            Dim2D.fromCorner(brVector.sub(tlVector))
+        );
+    }
+
+    public static fromElement(elem: Element): Bounds2D {
         const rect = elem.getBoundingClientRect();
 
         return new Bounds2D(

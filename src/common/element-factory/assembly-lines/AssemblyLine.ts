@@ -20,7 +20,7 @@ abstract class AssemblyLine<E extends HTMLElement = HTMLElement, P extends Assem
     public abstract copy(): AssemblyLine<E, P>;
 
     public make(parameters: Partial<P> = {}): E {
-        const resolvedParameters: P = { ...parameters, ... this.defaultParameters };
+        const resolvedParameters: P = { ...this.defaultParameters, ...parameters };
 
         // apply steps in order
         const out = this.mold(resolvedParameters);

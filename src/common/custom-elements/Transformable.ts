@@ -1,16 +1,20 @@
+import ElementFactory from "../element-factory/ElementFactory";
 import Bounds2D from "../geometry/Bounds2D";
 import Dim2D from "../geometry/Dim2D";
 import Transform2D from "../geometry/Transform2D";
 import Vector2D from "../geometry/Vector2D";
+import MathUtil from "../util/MathUtil";
 import CustomElement from "./CustomElement";
 
-export default abstract class Transformable extends CustomElement {
+const EF = ElementFactory.INSTANCE;
+
+abstract class Transformable extends CustomElement {
 
     private static CANVAS_BOUNDS = new Bounds2D(
         new Vector2D(0, 0),
         new Dim2D(100, 100)
     );
-
+    
     static {
         CustomElement.loadStylesheet("transformable");
     }
@@ -42,6 +46,7 @@ export default abstract class Transformable extends CustomElement {
 
 
         let mouseDown = false;
+        let doMove = false;
         let offset = Vector2D.ZERO;
 
         window.addEventListener("mousedown", ev => {
@@ -50,11 +55,12 @@ export default abstract class Transformable extends CustomElement {
                 .scale(.01)
                 .mult(this.transform.dim.getCorner());
 
-            this.isControlsVisible = ev.target === this;
+            this.isControlsVisible = ev.target instanceof Node && this.contains(ev.target);
+            doMove = ev.target === this;
         });
 
         window.addEventListener("mousemove", ev => {
-            if (this.isControlsVisible && mouseDown) {
+            if (doMove && mouseDown) {
 
                 this.transform.center = Transformable.CANVAS_BOUNDS.clamp(
                     Transformable.getMouseOffset(ev, this.parentElement!)
@@ -67,6 +73,54 @@ export default abstract class Transformable extends CustomElement {
         });
 
         window.addEventListener("mouseup", () => mouseDown = false);
+
+        const resizeHandleMaker = EF.div({ widthDir: Transformable.WidthResizeDir.NONE, heightDir: Transformable.HeightResizeDir.NONE }, undefined, "resize-handle")
+            .attribute("width-resize-dir", (self, params) => params.widthDir)
+            .attribute("height-resize-dir", (self, params) => params.heightDir)
+            .on("mousedown", (_, self) => self.toggleAttribute("selected", true))
+            .do(self => window.addEventListener("mouseup", () => self.removeAttribute("selected")))
+            .do((self, params) => window.addEventListener("mousemove", ev => {
+                if (self.hasAttribute("selected")) {
+                    const mouse = Transformable.CANVAS_BOUNDS.clamp(Transformable.getMouseOffset(ev, this.parentElement!));
+
+                    let oppositeCorner: Vector2D = this.transform.center;
+                    if (params.widthDir === Transformable.WidthResizeDir.LEFT) oppositeCorner.x = this.transform.right;
+                    else if (params.widthDir === Transformable.WidthResizeDir.RIGHT) oppositeCorner.x = this.transform.left;
+                    if (params.heightDir === Transformable.HeightResizeDir.UP) oppositeCorner.y = this.transform.bottom;
+                    else if (params.heightDir === Transformable.HeightResizeDir.DOWN) oppositeCorner.y = this.transform.top;
+                    oppositeCorner = Transformable.CANVAS_BOUNDS.clamp(oppositeCorner);
+
+
+                    const newBounds = Bounds2D.fromCorners(oppositeCorner, mouse);
+                    newBounds.dim = newBounds.dim.abs();
+                    newBounds.dim.width = MathUtil.clamp(newBounds.dim.width, 5, 100);
+                    newBounds.dim.height = MathUtil.clamp(newBounds.dim.height, 5, 100);
+
+                    if (params.widthDir !== Transformable.WidthResizeDir.NONE) {
+                        this.transform.center.x = newBounds.center.x;
+                        this.transform.dim.width = newBounds.dim.width;
+                    }
+                    if (params.heightDir !== Transformable.HeightResizeDir.NONE) {
+                        this.transform.center.y = newBounds.center.y;
+                        this.transform.dim.height = newBounds.dim.height;
+                    }
+
+
+                    this.refreshCSSVars();
+                }
+            }));
+
+        this.append(
+            resizeHandleMaker.make({ widthDir: Transformable.WidthResizeDir.LEFT, heightDir: Transformable.HeightResizeDir.UP }),
+            resizeHandleMaker.make({ widthDir: Transformable.WidthResizeDir.NONE, heightDir: Transformable.HeightResizeDir.UP }),
+            resizeHandleMaker.make({ widthDir: Transformable.WidthResizeDir.RIGHT, heightDir: Transformable.HeightResizeDir.UP }),
+            resizeHandleMaker.make({ widthDir: Transformable.WidthResizeDir.LEFT, heightDir: Transformable.HeightResizeDir.NONE }),
+            resizeHandleMaker.make({ widthDir: Transformable.WidthResizeDir.RIGHT, heightDir: Transformable.HeightResizeDir.NONE }),
+            resizeHandleMaker.make({ widthDir: Transformable.WidthResizeDir.LEFT, heightDir: Transformable.HeightResizeDir.DOWN }),
+            resizeHandleMaker.make({ widthDir: Transformable.WidthResizeDir.NONE, heightDir: Transformable.HeightResizeDir.DOWN }),
+            resizeHandleMaker.make({ widthDir: Transformable.WidthResizeDir.RIGHT, heightDir: Transformable.HeightResizeDir.DOWN }),
+        );
+
     }
 
 
@@ -74,8 +128,8 @@ export default abstract class Transformable extends CustomElement {
         this.style.setProperty("--transform-position-x", this.transform.center.x + '%');
         this.style.setProperty("--transform-position-y", this.transform.center.y + '%');
 
-        this.style.setProperty("--transform-size-width", this.transform.dim.width + '%');
-        this.style.setProperty("--transform-size-height", this.transform.dim.height + '%');
+        this.style.setProperty("--transform-size-width", Math.abs(this.transform.dim.width) + '%');
+        this.style.setProperty("--transform-size-height", Math.abs(this.transform.dim.height) + '%');
 
         this.style.setProperty("--transform-rotation", this.transform.rotation + "deg");
     }
@@ -92,3 +146,21 @@ export default abstract class Transformable extends CustomElement {
     }
 
 }
+
+namespace Transformable {
+
+    export enum WidthResizeDir {
+        NONE = "none",
+        LEFT = "left",
+        RIGHT = "right"
+    }
+
+    export enum HeightResizeDir {
+        NONE = "none",
+        UP = "up",
+        DOWN = "down"
+    }
+
+}
+
+export default Transformable;

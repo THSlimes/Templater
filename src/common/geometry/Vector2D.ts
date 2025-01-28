@@ -20,8 +20,8 @@ class Vector2D implements Point2D {
 
 
 
-    public readonly x: number;
-    public readonly y: number;
+    public x: number;
+    public y: number;
 
     /**
      * Creates a new Vector2D.

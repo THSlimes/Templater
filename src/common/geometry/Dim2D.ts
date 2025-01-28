@@ -13,8 +13,8 @@ export interface Size2D {
  */
 export default class Dim2D implements Size2D {
 
-    public readonly width: number;
-    public readonly height: number;
+    public width: number;
+    public height: number;
 
     /**
      * Creates a new Dim2D object.
@@ -52,6 +52,10 @@ export default class Dim2D implements Size2D {
      */
     public div(other: Size2D): Dim2D {
         return new Dim2D(this.width / other.width, this.height / other.height);
+    }
+
+    public abs():Dim2D {
+        return new Dim2D(Math.abs(this.width), Math.abs(this.height));
     }
 
 

@@ -14,10 +14,54 @@
 
     rotate: var(--transform-rotation);
 
+    user-select: none !important;
+
 
     &[controls-visible] {
         outline: 2px dashed gray;
         cursor: move;
+
+        >.resize-handle {
+
+            position: absolute;
+            translate: -50% -50%;
+
+            width: .5rem;
+            height: .5rem;
+
+            background-color: black;
+
+            &[width-resize-dir="left"] {
+                left: 0%;
+                &[height-resize-dir="up"] { cursor: nwse-resize; }
+                &[height-resize-dir="down"] { cursor: nesw-resize; }
+            }
+
+            &[width-resize-dir="none"] {
+                left: 50%;
+                cursor: ns-resize;
+            }
+
+            &[width-resize-dir="right"] {
+                left: 100%;
+                &[height-resize-dir="up"] { cursor: nesw-resize; }
+                &[height-resize-dir="down"] { cursor: nwse-resize; }
+            }
+
+            &[height-resize-dir="up"] {
+                top: 0%;
+            }
+
+            &[height-resize-dir="none"] {
+                top: 50%;
+                cursor: ew-resize;
+            }
+
+            &[height-resize-dir="down"] {
+                top: 100%;
+            }
+
+        }
     }
 
 }
