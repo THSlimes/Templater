@@ -73,8 +73,8 @@ export default class Bounds2D {
 
 
     public static fromCorners(topLeft: Point2D, bottomright: Point2D): Bounds2D {
-        const tlVector = Vector2D.fromPoint(topLeft);
-        const brVector = Vector2D.fromPoint(bottomright);
+        const tlVector = new Vector2D(Math.min(topLeft.x, bottomright.x), Math.min(topLeft.y, bottomright.y));
+        const brVector = new Vector2D(Math.max(topLeft.x, bottomright.x), Math.max(topLeft.y, bottomright.y));
 
         return new Bounds2D(
             tlVector.add(brVector).scale(.5),

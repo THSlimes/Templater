@@ -1,5 +1,7 @@
 [transformable] {
-    background-color: red;
+    background-image: url("../../images/anton.gif");
+    background-size: contain;
+
     display: block;
 
     position: absolute;
@@ -34,31 +36,14 @@
 
             &[width-resize-dir="left"] {
                 left: 0%;
-
-                &[height-resize-dir="up"] {
-                    cursor: nwse-resize;
-                }
-
-                &[height-resize-dir="down"] {
-                    cursor: nesw-resize;
-                }
             }
 
             &[width-resize-dir="none"] {
                 left: 50%;
-                cursor: ns-resize;
             }
 
             &[width-resize-dir="right"] {
                 left: 100%;
-
-                &[height-resize-dir="up"] {
-                    cursor: nesw-resize;
-                }
-
-                &[height-resize-dir="down"] {
-                    cursor: nwse-resize;
-                }
             }
 
             &[height-resize-dir="up"] {
@@ -67,7 +52,6 @@
 
             &[height-resize-dir="none"] {
                 top: 50%;
-                cursor: ew-resize;
             }
 
             &[height-resize-dir="down"] {
@@ -78,11 +62,11 @@
 
         >.rotate-handle-line {
             position: absolute;
-            top: calc(.75rem - 25%);
+            top: -2rem;
             left: 50%;
 
             width: 0px;
-            height: calc(25% - .75rem);
+            height: 2rem;
 
             outline: 2px dashed gray;
         }
@@ -92,7 +76,7 @@
             position: absolute;
 
             translate: -50% -50%;
-            top: -25%;
+            top: -3rem;
             left: 50%;
 
             font-size: 1.5rem;

@@ -1,3 +1,4 @@
+import MathUtil from "../util/MathUtil";
 import Dim2D from "./Dim2D";
 
 /**
@@ -92,6 +93,19 @@ class Vector2D implements Point2D {
         return Math.sqrt(this.mult(this, Vector2D.VectorMultKind.DOT));
     }
 
+    public normalized(): Vector2D {
+        return this.copy()
+            .scale(1 / this.magnitude());
+    }
+
+    public heading(): number {
+        return Math.atan2(this.y, this.x);
+    }
+
+    public rotate(rad: number): Vector2D {
+        return Vector2D.fromPolar(this.heading() + rad, this.magnitude());
+    }
+
 
     public equals(other: Point2D) {
         return this.x === other.x && this.y === other.y;
@@ -106,6 +120,14 @@ class Vector2D implements Point2D {
     public static fromPoint(p: Point2D) {
         return new Vector2D(p.x, p.y);
     }
+
+    public static fromPolar(heading: number, length: number) {
+        return new Vector2D(
+            Math.cos(heading) * length,
+            Math.sin(heading) * length
+        );
+    }
+
 }
 
 namespace Vector2D {

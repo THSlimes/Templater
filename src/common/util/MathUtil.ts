@@ -16,4 +16,12 @@ export default abstract class MathUtil {
         return Math.abs(a - b);
     }
 
+    public static degToRad(deg: number): number {
+        return deg / 360 * Math.PI * 2;
+    }
+
+    public static radToDeg(rad: number): number {
+        return rad / Math.PI / 2 * 360;
+    }
+
 }
