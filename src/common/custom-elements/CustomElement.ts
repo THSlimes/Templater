@@ -117,4 +117,15 @@ export default abstract class CustomElement extends HTMLElement {
         });
     }
 
+    public onAttributeChanged(attrName: string, callback: (newVal: string | null, oldVal: string | null, self: this) => void) {
+        new MutationObserver(mutations => {
+            for (const mutation of mutations) {
+                if (mutation.type === "attributes") {
+                    const newValue = this.getAttribute(attrName);
+                    if (newValue !== mutation.oldValue) callback(newValue, mutation.oldValue, this);
+                }
+            }
+        }).observe(this, { attributes: true, attributeOldValue: true, attributeFilter: [attrName] });
+    }
+
 }

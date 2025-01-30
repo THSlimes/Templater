@@ -3,7 +3,6 @@ import Bounds2D from "../geometry/Bounds2D";
 import Dim2D from "../geometry/Dim2D";
 import Transform2D from "../geometry/Transform2D";
 import Vector2D from "../geometry/Vector2D";
-import MathUtil from "../util/MathUtil";
 import CustomElement from "./CustomElement";
 
 const EF = ElementFactory.INSTANCE;
@@ -171,7 +170,7 @@ abstract class Transformable extends CustomElement {
         this.append(
             EF.div({}, undefined, "rotate-handle-line")
                 .make(),
-            EF.p({}, "cached")
+            EF.p({}, "refresh")
                 .classes("icon", "rotate-handle")
                 .style({ display: "none" })
                 .on("mousedown", (_, self) => self.toggleAttribute("selected", true))

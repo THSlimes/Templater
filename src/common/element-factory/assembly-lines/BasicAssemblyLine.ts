@@ -79,6 +79,19 @@ class BasicAssemblyLine<E extends HTMLElement, P extends AssemblyLine.Parameters
         return this.addStep(e => e.addEventListener(type, ev => listener(ev, e), { once: true }));
     }
 
+    public onAttributeChanged(attrName: string, callback: (newVal: string | null, oldVal: string | null, self: E) => void) {
+        return this.addStep(e =>
+            new MutationObserver(mutations => {
+                for (const mutation of mutations) {
+                    if (mutation.type === "attributes") {
+                        const newValue = e.getAttribute(attrName);
+                        if (newValue !== mutation.oldValue) callback(newValue, mutation.oldValue, e);
+                    }
+                }
+            }).observe(e, { attributes: true, attributeOldValue: true, attributeFilter: [attrName] })
+        );
+    }
+
     public do(funct: (elem: E, params: P) => void) {
         return this.addStep(funct);
     }

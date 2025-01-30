@@ -1,5 +1,4 @@
 [transformable] {
-    background-image: url("../../images/anton.gif");
     background-size: contain;
 
     display: block;
@@ -20,7 +19,7 @@
 
 
     &[controls-visible] {
-        outline: 2px dashed gray;
+        outline: 1px solid darkgray;
         cursor: move;
 
         >.resize-handle {
@@ -32,7 +31,10 @@
             width: .5rem;
             height: .5rem;
 
-            background-color: black;
+            background-color: white;
+
+            border-radius: .5rem;
+            outline: 2px solid darkgray;
 
             &[width-resize-dir="left"] {
                 left: 0%;
@@ -62,13 +64,13 @@
 
         >.rotate-handle-line {
             position: absolute;
-            top: -2rem;
+            top: -2.3rem;
             left: 50%;
 
             width: 0px;
-            height: 2rem;
+            height: 2.3rem;
 
-            outline: 2px dashed gray;
+            outline: 1px solid darkgrey;
         }
 
         >.rotate-handle {
@@ -79,7 +81,9 @@
             top: -3rem;
             left: 50%;
 
-            font-size: 1.5rem;
+            color: white;
+            font-size: 1.75rem;
+            -webkit-text-stroke: darkgrey 1px;
 
             cursor: grab;
         }
