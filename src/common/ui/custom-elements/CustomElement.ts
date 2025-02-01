@@ -117,7 +117,7 @@ export default abstract class CustomElement extends HTMLElement {
         });
     }
 
-    public onAttributeChanged(attrName: string, callback: (newVal: string | null, oldVal: string | null, self: this) => void) {
+    public onAttributeChanged(attrName: string, callback: (newVal: string | null, oldVal: string | null, self: this) => void, doInitialCall = false) {
         new MutationObserver(mutations => {
             for (const mutation of mutations) {
                 if (mutation.type === "attributes") {
@@ -126,6 +126,8 @@ export default abstract class CustomElement extends HTMLElement {
                 }
             }
         }).observe(this, { attributes: true, attributeOldValue: true, attributeFilter: [attrName] });
+
+        if (doInitialCall) callback(this.getAttribute(attrName), null, this);
     }
 
 }

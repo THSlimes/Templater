@@ -1,0 +1,34 @@
+transformable-shape {
+
+    >.shape {
+        width: 100%;
+        height: 100%;
+        background-color: var(--shape-fill-color);
+        pointer-events: none;
+    }
+
+    &[type="square"]>.shape {}
+
+    &[type="rectangle"]>.shape {}
+
+    &[type="rounded-rectangle"]>.shape {
+        border-radius: 1000000px;
+    }
+
+    &[type="circle"]>.shape {
+        border-radius: 1000000px;
+    }
+
+    &[type="ellipse"]>.shape {
+        border-radius: 50%;
+    }
+
+    &[type="triangle"]>.shape {
+        clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    }
+
+    &[type="right-triangle"]>.shape {
+        clip-path: polygon(100% 0%, 100% 100%, 0% 100%);
+    }
+
+}

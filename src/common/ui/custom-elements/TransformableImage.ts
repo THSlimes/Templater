@@ -1,5 +1,5 @@
-import ElementFactory from "../element-factory/ElementFactory";
-import TypeChecker, { getEnumChecker } from "../run-time-type-checking/TypeChecker";
+import ElementFactory from "../../element-factory/ElementFactory";
+import TypeChecker, { getEnumChecker } from "../../run-time-type-checking/TypeChecker";
 import Transformable from "./Transformable";
 
 const EF = ElementFactory.INSTANCE;

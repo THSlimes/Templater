@@ -15,6 +15,9 @@ export default class Dim2D implements Size2D {
 
     public width: number;
     public height: number;
+    public get area() {
+        return this.width * this.height;
+    }
 
     /**
      * Creates a new Dim2D object.
@@ -25,7 +28,6 @@ export default class Dim2D implements Size2D {
         this.width = width;
         this.height = height;
     }
-
 
     /**
      * Scales the dimensions by a scalar.
@@ -54,7 +56,7 @@ export default class Dim2D implements Size2D {
         return new Dim2D(this.width / other.width, this.height / other.height);
     }
 
-    public abs():Dim2D {
+    public abs(): Dim2D {
         return new Dim2D(Math.abs(this.width), Math.abs(this.height));
     }
 

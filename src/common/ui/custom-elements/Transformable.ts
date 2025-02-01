@@ -1,8 +1,8 @@
-import ElementFactory from "../element-factory/ElementFactory";
-import Bounds2D from "../geometry/Bounds2D";
-import Dim2D from "../geometry/Dim2D";
-import Transform2D from "../geometry/Transform2D";
-import Vector2D from "../geometry/Vector2D";
+import ElementFactory from "../../element-factory/ElementFactory";
+import Bounds2D from "../../geometry/Bounds2D";
+import Dim2D from "../../geometry/Dim2D";
+import Transform2D from "../../geometry/Transform2D";
+import Vector2D from "../../geometry/Vector2D";
 import CustomElement from "./CustomElement";
 
 const EF = ElementFactory.INSTANCE;
@@ -23,9 +23,9 @@ abstract class Transformable extends CustomElement {
 
 
 
-    private readonly transform: Transform2D = new Transform2D(
+    protected readonly transform: Transform2D = new Transform2D(
         new Vector2D(0, 0),
-        new Dim2D(.5, .3),
+        new Dim2D(.25, .25),
         // Math.PI / 2
         0
     );
@@ -36,6 +36,14 @@ abstract class Transformable extends CustomElement {
 
     public set isControlsVisible(newVal: boolean) {
         this.toggleAttribute("controls-visible", newVal);
+    }
+
+    public get lockAspectRatio() {
+        return this.hasAttribute("lock-aspect-ratio");
+    }
+
+    public set lockAspectRatio(newVal: boolean) {
+        this.toggleAttribute("lock-aspect-ratio", newVal);
     }
 
 
@@ -119,17 +127,23 @@ abstract class Transformable extends CustomElement {
                         localMouse.y = Math.max(localMouse.y, localOppositeCorner.y + Transformable.MIN_HEIGHT / this.transform.dim.height);
                     }
 
+                    const widthHeightRatio = this.transform.dim.width / this.transform.dim.height;
                     const localNewBounds = Bounds2D.fromCorners(localOppositeCorner, localMouse);
-                    if (params.widthDir === Transformable.WidthResizeDir.NONE) {
-                        localNewBounds.dim.width = 1;
+                    if (params.widthDir === Transformable.WidthResizeDir.NONE) { // only change height
+                        localNewBounds.dim.width = this.lockAspectRatio ?
+                            localNewBounds.dim.height * widthHeightRatio :
+                            1;
                         localNewBounds.center.x = 0;
                     }
-                    if (params.heightDir === Transformable.HeightResizeDir.NONE) {
-                        localNewBounds.dim.height = 1;
+                    else if (params.heightDir === Transformable.HeightResizeDir.NONE) { // only change width
+                        localNewBounds.dim.height = this.lockAspectRatio ?
+                            localNewBounds.dim.width / widthHeightRatio :
+                            1;
                         localNewBounds.center.y = 0;
                     }
 
                     const globalNewCenter = this.transform.toGlobalSpace(localNewBounds.center);
+                    Transformable.CANVAS_BOUNDS.clamp(globalNewCenter);
 
                     this.transform.rotation = this.transform.rotation;
                     this.transform.center = globalNewCenter;
@@ -177,8 +191,8 @@ abstract class Transformable extends CustomElement {
                 .do(self => window.addEventListener("mouseup", () => self.removeAttribute("selected")))
                 .do(self => window.addEventListener("mousemove", ev => {
                     if (self.hasAttribute("selected")) {
-                        const mouse = Transformable.getMouseOffset(ev, this);
-                        this.transform.rotation = mouse.heading() + Math.PI / 2;
+                        const globalMouse = Transformable.getMouseOffset(ev, this.parentElement!);
+                        this.transform.rotation = globalMouse.sub(this.transform.center).heading() + Math.PI / 2;
 
                         this.dispatchEvent(new Event("rotate"));
                         this.refreshCSSVars();
@@ -190,7 +204,7 @@ abstract class Transformable extends CustomElement {
     }
 
 
-    private refreshCSSVars() {
+    protected refreshCSSVars() {
         this.style.setProperty("--transform-position-x", this.transform.center.x * 100 + '%');
         this.style.setProperty("--transform-position-y", this.transform.center.y * 100 + '%');
 
