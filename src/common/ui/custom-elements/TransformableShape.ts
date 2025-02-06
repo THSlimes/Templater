@@ -1,35 +1,32 @@
 import ElementFactory from "../../element-factory/ElementFactory";
-import MissingAttributeError from "../../error-handling/MissingAttributeError";
 import Dim2D from "../../geometry/Dim2D";
-import TypeChecker, { getEnumChecker } from "../../run-time-type-checking/TypeChecker";
 import Color from "../Color";
+import { SyncStateWithAttr, SyncValueWithAttr } from "./CustomElement";
 import Transformable from "./Transformable";
 
 const EF = ElementFactory.INSTANCE;
 
+
+export enum Shape {
+    SQUARE = "square",
+    RECTANGLE = "rectangle",
+    ROUNDED_RECTANGLE = "rounded-rectangle",
+
+    CIRCLE = "circle",
+    ELLIPSE = "ellipse",
+
+    TRIANGLE = "triangle",
+    RIGHT_TRIANGLE = "right-triangle"
+}
+
 class TransformableShape extends Transformable {
 
-    public get type(): TransformableShape.Type {
-        return TransformableShape.castToType(this.getAttribute("type"));
-    }
-
-    public set type(newVal: TransformableShape.Type) {
-        this.setAttribute("type", newVal);
-    }
-
-    public get color(): Color {
-        if (!this.hasAttribute("color")) throw new MissingAttributeError("color");
-        return Color.fromHex(this.getAttribute("color")!);
-    }
-
-    public set color(newVal: Color) {
-        this.setAttribute("color", newVal.toHex());
-        this.refreshCSSVars();
-    }
+    @SyncStateWithAttr("type", Shape) public type: Shape = Shape.RECTANGLE;
+    @SyncValueWithAttr("color", Color) public color: Color = Color.TRANSPARENT;
 
 
     protected override initElement(): void | Promise<void> {
-        if (!this.hasAttribute("type")) this.type = TransformableShape.Type.SQUARE; // assign default type
+        if (!this.hasAttribute("type")) this.type = Shape.SQUARE; // assign default type
 
         const shapeElement = this.appendChild(
             EF.div({}, undefined, "shape")
@@ -58,38 +55,24 @@ class TransformableShape extends Transformable {
     protected override refreshCSSVars(): void {
         super.refreshCSSVars();
 
-        this.style.setProperty("--shape-fill-color", this.color.toHex());
+        this.style.setProperty("--shape-fill-color", this.color.toString());
     }
 
 }
 
 namespace TransformableShape {
 
-    export enum Type {
-        SQUARE = "square",
-        RECTANGLE = "rectangle",
-        ROUNDED_RECTANGLE = "rounded-rectangle",
+    export const WIDTH_HEIGHT_RATIOS: Readonly<Record<Shape, number | undefined>> = Object.freeze({
+        [Shape.SQUARE]: 1,
+        [Shape.RECTANGLE]: undefined,
+        [Shape.ROUNDED_RECTANGLE]: undefined,
 
-        CIRCLE = "circle",
-        ELLIPSE = "ellipse",
+        [Shape.CIRCLE]: 1,
+        [Shape.ELLIPSE]: undefined,
 
-        TRIANGLE = "triangle",
-        RIGHT_TRIANGLE = "right-triangle"
-    }
-
-    export const WIDTH_HEIGHT_RATIOS: Readonly<Record<Type, number | undefined>> = Object.freeze({
-        [Type.SQUARE]: 1,
-        [Type.RECTANGLE]: undefined,
-        [Type.ROUNDED_RECTANGLE]: undefined,
-
-        [Type.CIRCLE]: 1,
-        [Type.ELLIPSE]: undefined,
-
-        [Type.TRIANGLE]: undefined,
-        [Type.RIGHT_TRIANGLE]: undefined
+        [Shape.TRIANGLE]: undefined,
+        [Shape.RIGHT_TRIANGLE]: undefined
     });
-
-    export const castToType = TypeChecker.cast(getEnumChecker(Type), "TransformableShape.type");
 
 }
 

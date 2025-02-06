@@ -1,5 +1,15 @@
 export default class Color {
 
+    public static readonly TRANSPARENT = new Color(0, 0, 0, 0);
+    public static readonly BLACK = new Color(0, 0, 0);
+    public static readonly WHITE = new Color(255, 255, 255);
+
+    public static readonly RED = new Color(255, 0, 0);
+    public static readonly GREEN = new Color(0, 255, 0);
+    public static readonly BLUE = new Color(0, 0, 255);
+
+
+
     public readonly r: number;
     public readonly g: number;
     public readonly b: number;
@@ -12,7 +22,7 @@ export default class Color {
         this.a = a;
     }
 
-    public toHex(): string {
+    public toString(): string {
         const comps = this.a == 255 ?
             [this.r, this.g, this.b] :
             [this.r, this.g, this.b, this.a];
@@ -22,7 +32,7 @@ export default class Color {
 
 
 
-    public static fromHex(hexStr: string): Color {
+    public static fromString(hexStr: string): Color {
         if (!hexStr.startsWith('#')) throw new SyntaxError("hex color string does not start with a '#'");
 
         hexStr = hexStr.substring(1);

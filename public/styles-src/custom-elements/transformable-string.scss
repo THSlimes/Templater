@@ -1,0 +1,34 @@
+transformable-text {
+
+    &[styles~=bold]>p.text {
+        font-weight: bold;
+    }
+
+    &[styles~=italic]>p.text {
+        font-style: italic;
+    }
+
+    &[styles~=underline]>p.text {
+        text-decoration: underline;
+    }
+
+    &[styles~=strikethrough]>.text {
+        text-decoration: line-through;
+    }
+
+    &[styles~=underline][styles~=strikethrough]>p.text {
+        text-decoration: underline line-through;
+    }
+
+    >p.text {
+        margin: 0px;
+
+        color: var(--text-fill-color);
+        font-family: var(--text-font-family);
+        text-align: var(--text-alignment);
+
+        pointer-events: none;
+        user-select: none;
+    }
+
+}

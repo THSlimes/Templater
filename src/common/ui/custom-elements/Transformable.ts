@@ -3,7 +3,7 @@ import Bounds2D from "../../geometry/Bounds2D";
 import Dim2D from "../../geometry/Dim2D";
 import Transform2D from "../../geometry/Transform2D";
 import Vector2D from "../../geometry/Vector2D";
-import CustomElement from "./CustomElement";
+import CustomElement, { SyncPresence } from "./CustomElement";
 
 const EF = ElementFactory.INSTANCE;
 
@@ -30,25 +30,15 @@ abstract class Transformable extends CustomElement {
         0
     );
 
-    public get isControlsVisible() {
-        return this.hasAttribute("controls-visible");
-    }
-
-    public set isControlsVisible(newVal: boolean) {
-        this.toggleAttribute("controls-visible", newVal);
-    }
-
-    public get lockAspectRatio() {
-        return this.hasAttribute("lock-aspect-ratio");
-    }
-
-    public set lockAspectRatio(newVal: boolean) {
-        this.toggleAttribute("lock-aspect-ratio", newVal);
-    }
+    @SyncPresence("controls-visible") public isControlsVisible:boolean = false;
+    @SyncPresence("lock-aspect-ratio") public lockAspectRatio:boolean = false;
 
 
     public constructor() {
         super();
+
+        this.syncPropertyWithAttribute("isControlsVisible", "controls-visible", { fromString: () => true, toString: v => v ? "" : null }, false);
+        this.syncPropertyWithAttribute("lockAspectRatio", "lock-aspect-ratio", { fromString: () => true, toString: v => v ? "" : null }, false);
     }
 
     protected override initElement(): void | Promise<void> {
