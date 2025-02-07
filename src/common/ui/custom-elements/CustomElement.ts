@@ -1,15 +1,15 @@
 import MissingAttributeError from "../../error-handling/MissingAttributeError";
-import TypeChecker, { getEnumChecker } from "../../run-time-type-checking/TypeChecker";
+import TypeChecker, { getEnumChecker, isString } from "../../run-time-type-checking/TypeChecker";
 import { Enum } from "../../util/UtilTypes";
 
 
 interface StringConverter<T> {
     fromString(str: string): T,
-    toString?(val: T): string
+    toString(val: T): string
 }
 
 /**
- * Class field annotation. When applied, the boolean's value is synced with the presence
+ * Class field decorator. When applied, the boolean's value is synced with the presence
  * an attribute on the HTMLElement.
  * @param attrName name of the attribute
  */
@@ -23,7 +23,16 @@ export function SyncPresence<C extends CustomElement>(attrName: string) {
     });
 }
 
+/**
+ * Class field decorator. When applied, the field's value is synchronized with that of an attribute.
+ * @param attrName name of the attribute
+ * @param strConverter object that handles converting value from/to a string
+ * @param defaultValue value to use when the attribute is not present. If omitted, the attribute must
+ * be present on the element.
+ */
 export function SyncValueWithAttr<C extends CustomElement, T>(attrName: string, strConverter: StringConverter<T>, defaultValue?: T) {
+    if (strConverter.toString === Object.prototype.toString) strConverter.toString = String; // never use default object.toString method
+
     return (_: undefined, ctx: ClassFieldDecoratorContext<C, T>) => ctx.addInitializer(function () {
         const oldValue: T = Reflect.get(this, ctx.name) as T; // funky
 
@@ -40,35 +49,66 @@ export function SyncValueWithAttr<C extends CustomElement, T>(attrName: string, 
             },
             set: v => {
                 if (v === null) this.removeAttribute(attrName);
-                else this.setAttribute(attrName, (strConverter.toString ?? String)(v))
+                else this.setAttribute(attrName, strConverter.toString(v))
             }
         });
 
-        this.onceInitialized()
-            .then(() => {
-                if (!this.hasAttribute(attrName)) {
-                    if (oldValue === null) this.removeAttribute(attrName);
-                    else this.setAttribute(attrName, String(oldValue));
-                }
-            });
+        this.addEventListener("beforeinit", () => {
+            if (!this.hasAttribute(attrName)) {
+                if (oldValue === null) this.removeAttribute(attrName);
+                else this.setAttribute(attrName, strConverter.toString(oldValue));
+            }
+        });
     });
 }
 
+/**
+ * Class field decorator. Synchronizes the value of a nullable string with
+ * that of an element's attribute. A null value indicates that the attribute
+ * is not present on the element.
+ * @param attName name of the attribute
+ */
 export function SyncWithAttr<C extends CustomElement>(attName: string) {
     return SyncValueWithAttr<C, string | null>(attName, { fromString: str => str }, null);
 }
 
-export function SyncStateWithAttr<C extends CustomElement, E extends Enum>(attrName: string, enumerator: E, defaultValue?: E[keyof E]) {
+/**
+ * Class field decorator. Synchronizes the value of an enum value with that
+ * of an element's attribute.
+ * @param attrName name of the attribute
+ * @param enumerator the enumerable type
+ * @param defaultValue default value used when the attribute is missing. If
+ * omitted, the attribute must be present on the element.
+ */
+export function SyncStateWithAttr<C extends CustomElement, E extends Record<string, string>>(attrName: string, enumerator: E, defaultValue?: E[keyof E]) {
     const enumChecker = TypeChecker.cast(getEnumChecker(enumerator));
 
     return SyncValueWithAttr<C, E[keyof E]>(attrName, { fromString: enumChecker }, defaultValue);
 }
 
-export function SyncStateSetWithAttr<C extends CustomElement, E extends Enum>(attrName: string, enumerator: E) {
-    const enumChecker = TypeChecker.cast(getEnumChecker(enumerator));
+/**
+ * Class field decorator. Synchronizes the value of a set of enum values with
+ * that of an element's attribute.
+ * @param attrName name of the attribute
+ * @param enumerator the enumerable type
+ */
+export function SyncStateSetWithAttr<C extends CustomElement, E extends Record<string, string>>(attrName: string, enumerator: E) {
+    const enumVals = Object.values(enumerator) as E[keyof E][];
 
     return SyncValueWithAttr<C, Set<E[keyof E]>>(attrName, {
-        fromString: str => new Set(str.split(' ').map(enumChecker)),
+        fromString: str => {
+            const out = new Set<E[keyof E]>();
+
+            while (str.length !== 0) {
+                const val = enumVals.find(v => str.startsWith(v));
+                if (val === undefined) throw new TypeError(`"${str}" does not start with an enum member`);
+
+                out.add(val);
+                str = str.substring(val.length + 1);
+            }
+
+            return out;
+        },
         toString: set => [...set.values()].join(' ')
     });
 }
@@ -145,6 +185,7 @@ abstract class CustomElement extends HTMLElement {
     }
 
     connectedCallback() {
+        this.dispatchEvent(new Event("beforeinit"));
         const initPromise = this.initElement() ?? Promise.resolve();
 
         initPromise
@@ -182,36 +223,20 @@ abstract class CustomElement extends HTMLElement {
         });
     }
 
-    public onAttributeChanged(attrName: string, callback: (newVal: string | null, oldVal: string | null, self: this) => void, doInitialCall = false) {
-        new MutationObserver(mutations => {
-            for (const mutation of mutations) {
-                if (mutation.type === "attributes") {
-                    const newValue = this.getAttribute(attrName);
-                    if (newValue !== mutation.oldValue) callback(newValue, mutation.oldValue, this);
+    public onAttributeChanged(attrName: string | Iterable<string>, callback: (newVal: string | null, oldVal: string | null, self: this) => void, doInitialCall = false) {
+        if (isString(attrName)) {
+            new MutationObserver(mutations => {
+                for (const mutation of mutations) {
+                    if (mutation.type === "attributes") {
+                        const newValue = this.getAttribute(attrName);
+                        if (newValue !== mutation.oldValue) callback(newValue, mutation.oldValue, this);
+                    }
                 }
-            }
-        }).observe(this, { attributes: true, attributeOldValue: true, attributeFilter: [attrName] });
+            }).observe(this, { attributes: true, attributeOldValue: true, attributeFilter: [attrName] });
 
-        if (doInitialCall) callback(this.getAttribute(attrName), null, this);
-    }
-
-
-    protected syncPropertyWithAttribute<K extends keyof this>(key: K, attrName: string, converter: CustomElement.AttrConverter<this[K]>, defaultValue?: this[K]) {
-        Reflect.defineProperty(this, key, {
-            get: () => {
-                const attrVal = this.getAttribute(attrName);
-                if (attrVal === null) { // attribute not present
-                    if (defaultValue === undefined) throw new MissingAttributeError(attrName);
-                    else return defaultValue;
-                }
-                else return converter.fromString(attrVal); // attribute present
-            },
-            set: val => {
-                const attrVal = (converter.toString ?? String)(val);
-                if (attrVal === null) this.removeAttribute(attrName);
-                else this.setAttribute(attrName, attrVal);
-            }
-        });
+            if (doInitialCall) callback(this.getAttribute(attrName), null, this);
+        }
+        else for (const n of attrName) this.onAttributeChanged(n, callback, doInitialCall);
     }
 
 

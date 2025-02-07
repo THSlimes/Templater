@@ -36,9 +36,6 @@ abstract class Transformable extends CustomElement {
 
     public constructor() {
         super();
-
-        this.syncPropertyWithAttribute("isControlsVisible", "controls-visible", { fromString: () => true, toString: v => v ? "" : null }, false);
-        this.syncPropertyWithAttribute("lockAspectRatio", "lock-aspect-ratio", { fromString: () => true, toString: v => v ? "" : null }, false);
     }
 
     protected override initElement(): void | Promise<void> {

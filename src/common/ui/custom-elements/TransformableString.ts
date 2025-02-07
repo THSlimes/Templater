@@ -51,25 +51,31 @@ export default abstract class TransformableString extends Transformable {
         this.paragraphElement.textContent = newVal;
     }
 
-    @SyncValueWithAttr("color", Color) public color:Color = Color.TRANSPARENT;
-    @SyncStateSetWithAttr("styles", TextStyle) public styles:Set<TextStyle> = new Set();
-    @SyncStateWithAttr("font-family", FontFamily) public fontFamily:FontFamily = FontFamily.SANS_SERIF;
-    @SyncStateWithAttr("alignment", TextAlignment) public alignment:TextAlignment = TextAlignment.LEFT;
+    @SyncValueWithAttr("color", Color) public color: Color = Color.TRANSPARENT;
+    @SyncStateSetWithAttr("styles", TextStyle) public styles: Set<TextStyle> = new Set();
+    @SyncStateWithAttr("font-family", FontFamily) public fontFamily: FontFamily = FontFamily.SANS_SERIF;
+    @SyncStateWithAttr("alignment", TextAlignment) public alignment: TextAlignment = TextAlignment.LEFT;
+    @SyncValueWithAttr("font-size", { fromString: Number.parseFloat }) public fontSize = 1;
 
 
     protected override initElement(): void | Promise<void> {
         super.initElement();
+
+        this.toggleAttribute("transformable-string", true);
 
         this.paragraphElement = this.appendChild(
             EF.p({}, "")
                 .classes("text")
                 .make()
         );
+
+        this.onAttributeChanged(["color", "font-family", "alignment", "font-size"], () => this.refreshCSSVars());
     }
 
     protected override refreshCSSVars(): void {
         this.style.setProperty("--text-fill-color", this.color.toString());
         this.style.setProperty("--text-font-family", this.fontFamily);
+        this.style.setProperty("--text-font-size", this.fontSize + "em");
         this.style.setProperty("--text-alignment", this.alignment);
         super.refreshCSSVars();
     }
