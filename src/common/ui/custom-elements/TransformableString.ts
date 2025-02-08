@@ -1,7 +1,7 @@
 import ElementFactory from "../../element-factory/ElementFactory";
 import MissingElementError from "../../error-handling/MissingElementError";
 import Color from "../Color";
-import CustomElement, { SyncStateWithAttr } from "./CustomElement";
+import CustomElement, { SyncStateSetWithClasses, SyncStateWithAttr } from "./CustomElement";
 import { SyncStateSetWithAttr, SyncValueWithAttr } from "./CustomElement";
 import Transformable from "./Transformable";
 
@@ -30,6 +30,13 @@ export enum TextAlignment {
     JUSTIFY = "justify"
 }
 
+export enum TextCase {
+    NONE = "none",
+    LOWERCASE = "lowercase",
+    UPPERCASE = "uppercase",
+    CAPITALIZE = "capitalize"
+}
+
 
 export default abstract class TransformableString extends Transformable {
 
@@ -52,10 +59,11 @@ export default abstract class TransformableString extends Transformable {
     }
 
     @SyncValueWithAttr("color", Color) public color: Color = Color.TRANSPARENT;
-    @SyncStateSetWithAttr("styles", TextStyle) public styles: Set<TextStyle> = new Set();
+    @SyncStateSetWithClasses(TextStyle) public styles: Set<TextStyle> = new Set();
     @SyncStateWithAttr("font-family", FontFamily) public fontFamily: FontFamily = FontFamily.SANS_SERIF;
     @SyncStateWithAttr("alignment", TextAlignment) public alignment: TextAlignment = TextAlignment.LEFT;
     @SyncValueWithAttr("font-size", { fromString: Number.parseFloat }) public fontSize = 1;
+    @SyncStateWithAttr("case", TextCase) public case: TextCase = TextCase.NONE;
 
 
     protected override initElement(): void | Promise<void> {
@@ -69,7 +77,7 @@ export default abstract class TransformableString extends Transformable {
                 .make()
         );
 
-        this.onAttributeChanged(["color", "font-family", "alignment", "font-size"], () => this.refreshCSSVars());
+        this.onAttributeChanged(["color", "font-family", "alignment", "font-size", "case"], () => this.refreshCSSVars());
     }
 
     protected override refreshCSSVars(): void {
@@ -77,6 +85,7 @@ export default abstract class TransformableString extends Transformable {
         this.style.setProperty("--text-font-family", this.fontFamily);
         this.style.setProperty("--text-font-size", this.fontSize + "em");
         this.style.setProperty("--text-alignment", this.alignment);
+        this.style.setProperty("--text-case", this.case);
         super.refreshCSSVars();
     }
 

@@ -1,22 +1,22 @@
 *[transformable-string] {
 
-    &[styles~=bold]>p.text {
+    &.bold>p.text {
         font-weight: bold;
     }
 
-    &[styles~=italic]>p.text {
+    &.italic>p.text {
         font-style: italic;
     }
 
-    &[styles~=underline]>p.text {
+    &.underline>p.text {
         text-decoration: underline;
     }
 
-    &[styles~=strikethrough]>.text {
+    &.strikethrough>.text {
         text-decoration: line-through;
     }
 
-    &[styles~=underline][styles~=strikethrough]>p.text {
+    &.underline.strikethrough>p.text {
         text-decoration: underline line-through;
     }
 
@@ -27,6 +27,7 @@
         font-family: var(--text-font-family);
         font-size: var(--text-font-size);
         text-align: var(--text-alignment);
+        text-transform: var(--text-case);
 
         pointer-events: none;
         user-select: none;

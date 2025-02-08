@@ -1,6 +1,5 @@
 import MissingAttributeError from "../../error-handling/MissingAttributeError";
 import TypeChecker, { getEnumChecker, isString } from "../../run-time-type-checking/TypeChecker";
-import { Enum } from "../../util/UtilTypes";
 
 
 interface StringConverter<T> {
@@ -31,10 +30,10 @@ export function SyncPresence<C extends CustomElement>(attrName: string) {
  * be present on the element.
  */
 export function SyncValueWithAttr<C extends CustomElement, T>(attrName: string, strConverter: StringConverter<T>, defaultValue?: T) {
-    if (strConverter.toString === Object.prototype.toString) strConverter.toString = String; // never use default object.toString method
+    if (strConverter.toString === Object.prototype.toString || strConverter.toString === Object.toString) strConverter.toString = String; // never use default object.toString method
 
     return (_: undefined, ctx: ClassFieldDecoratorContext<C, T>) => ctx.addInitializer(function () {
-        const oldValue: T = Reflect.get(this, ctx.name) as T; // funky
+        const oldValue = Reflect.get(this, ctx.name) as T; // funky
 
         Reflect.defineProperty(this, ctx.name, {
             configurable: false,
@@ -54,10 +53,7 @@ export function SyncValueWithAttr<C extends CustomElement, T>(attrName: string, 
         });
 
         this.addEventListener("beforeinit", () => {
-            if (!this.hasAttribute(attrName)) {
-                if (oldValue === null) this.removeAttribute(attrName);
-                else this.setAttribute(attrName, strConverter.toString(oldValue));
-            }
+            if (!this.hasAttribute(attrName)) Reflect.set(this, ctx.name, oldValue);
         });
     });
 }
@@ -110,6 +106,29 @@ export function SyncStateSetWithAttr<C extends CustomElement, E extends Record<s
             return out;
         },
         toString: set => [...set.values()].join(' ')
+    });
+}
+
+/**
+ * Class field decorator. Synchronizes the value of a set of enum values with
+ * the element's class list.
+ * @param enumerator the enumerable type
+ */
+export function SyncStateSetWithClasses<C extends CustomElement, E extends Record<string, string>>(enumerator: E) {
+    const enumVals = Object.values(enumerator) as E[keyof E][];
+
+    return (_: undefined, ctx: ClassFieldDecoratorContext<C, Set<E[keyof E]>>) => ctx.addInitializer(function () {
+        const oldValue = Reflect.get(this, ctx.name) as Set<E[keyof E]>; // funky
+
+        Reflect.defineProperty(this, ctx.name, {
+            configurable: false,
+            get: () => new Set(enumVals.filter(v => this.classList.contains(v))),
+            set: set => enumVals.forEach(v => this.classList.toggle(v, set.has(v)))
+        });
+
+        this.addEventListener("beforeinit", () => {
+            if (!enumVals.some(v => this.classList.contains(v))) Reflect.set(this, ctx.name, oldValue);
+        });
     });
 }
 
